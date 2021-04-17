@@ -10,13 +10,13 @@
 import * as jasmineCheck from 'jasmine-check';
 jasmineCheck.install();
 
-import { List, Range, Seq } from '../';
+import { List, Range, Seq } from 'immutable';
 
 describe('find', () => {
   it('find returns notSetValue when match is not found', () => {
     expect(
       Seq([1, 2, 3, 4, 5, 6]).find(
-        function() {
+        function () {
           return false;
         },
         null,
@@ -28,7 +28,7 @@ describe('find', () => {
   it('findEntry returns notSetValue when match is not found', () => {
     expect(
       Seq([1, 2, 3, 4, 5, 6]).findEntry(
-        function() {
+        function () {
           return false;
         },
         null,
@@ -40,7 +40,7 @@ describe('find', () => {
   it('findLastEntry returns notSetValue when match is not found', () => {
     expect(
       Seq([1, 2, 3, 4, 5, 6]).findLastEntry(
-        function() {
+        function () {
           return false;
         },
         null,

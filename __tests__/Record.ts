@@ -7,7 +7,7 @@
 
 ///<reference path='../resources/jest.d.ts'/>
 
-import { isKeyed, Record, Seq } from '../';
+import { isKeyed, List, Map, Record, Seq } from 'immutable';
 
 describe('Record', () => {
   it('defines a constructor', () => {
@@ -195,7 +195,7 @@ describe('Record', () => {
 
     try {
       const warnings: Array<any> = [];
-      console.warn = w => warnings.push(w);
+      console.warn = (w) => warnings.push(w);
 
       // size is a safe key to use
       const MyType1 = Record({ size: 123 });
@@ -233,7 +233,10 @@ describe('Record', () => {
 
     const seq4 = Seq.Indexed(t1);
     expect(isKeyed(seq4)).toBe(false);
-    expect(seq4.toJS()).toEqual([['a', 10], ['b', 20]]);
+    expect(seq4.toJS()).toEqual([
+      ['a', 10],
+      ['b', 20],
+    ]);
   });
 
   it('can be iterated over', () => {
@@ -245,6 +248,67 @@ describe('Record', () => {
       entries.push(entry);
     }
 
-    expect(entries).toEqual([['a', 10], ['b', 20]]);
+    expect(entries).toEqual([
+      ['a', 10],
+      ['b', 20],
+    ]);
+  });
+
+  it('calling `equals` between two instance of factories with same properties and same value should return true', () => {
+    const factoryA = Record({ id: '' });
+    const factoryB = Record({ id: '' });
+
+    expect(factoryA().equals(factoryA())).toBe(true);
+    expect(factoryA().equals(factoryB())).toBe(true);
+  });
+
+  it('check that reset does reset the record. See https://github.com/immutable-js-oss/immutable-js/issues/85 ', () => {
+    type UserType = {
+      name: string;
+      roles: List<string> | Array<string>;
+    };
+
+    const User = Record<UserType>({
+      name: 'default name',
+      roles: List<string>(),
+    });
+
+    const user0 = new User({
+      name: 'John',
+      roles: ['superuser', 'admin'],
+    });
+    const user1 = user0.clear();
+
+    expect(user1.name).toBe('default name');
+    expect(user1.roles).toEqual(List());
+
+    const user2 = user0.withMutations((mutable: Record<UserType>) => {
+      mutable.clear();
+    });
+
+    expect(user2.name).toBe('default name');
+    expect(user2.roles).toEqual(List());
+  });
+
+  it('does not accept a Record as constructor', () => {
+    const Foo = Record({ foo: 'bar' });
+    const fooInstance = Foo();
+    expect(() => {
+      Record(fooInstance);
+    }).toThrowErrorMatchingSnapshot();
+  });
+
+  it('does not accept a non object as constructor', () => {
+    const defaultValues = null;
+    expect(() => {
+      Record(defaultValues);
+    }).toThrowErrorMatchingSnapshot();
+  });
+
+  it('does not accept an immutable object that is not a Record as constructor', () => {
+    const defaultValues = Map({ foo: 'bar' });
+    expect(() => {
+      Record(defaultValues);
+    }).toThrowErrorMatchingSnapshot();
   });
 });

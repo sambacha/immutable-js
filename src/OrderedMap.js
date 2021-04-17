@@ -20,12 +20,12 @@ export class OrderedMap extends Map {
     return value === null || value === undefined
       ? emptyOrderedMap()
       : isOrderedMap(value)
-        ? value
-        : emptyOrderedMap().withMutations(map => {
-            const iter = KeyedCollection(value);
-            assertNotInfinite(iter.size);
-            iter.forEach((v, k) => map.set(k, v));
-          });
+      ? value
+      : emptyOrderedMap().withMutations((map) => {
+          const iter = KeyedCollection(value);
+          assertNotInfinite(iter.size);
+          iter.forEach((v, k) => map.set(k, v));
+        });
   }
 
   static of(/*...values*/) {
@@ -53,6 +53,7 @@ export class OrderedMap extends Map {
       this.size = 0;
       this._map.clear();
       this._list.clear();
+      this.__altered = true;
       return this;
     }
     return emptyOrderedMap();
@@ -66,13 +67,9 @@ export class OrderedMap extends Map {
     return updateOrderedMap(this, k, NOT_SET);
   }
 
-  wasAltered() {
-    return this._map.wasAltered() || this._list.wasAltered();
-  }
-
   __iterate(fn, reverse) {
     return this._list.__iterate(
-      entry => entry && fn(entry[1], entry[0], this),
+      (entry) => entry && fn(entry[1], entry[0], this),
       reverse
     );
   }
@@ -92,6 +89,7 @@ export class OrderedMap extends Map {
         return emptyOrderedMap();
       }
       this.__ownerID = ownerID;
+      this.__altered = false;
       this._map = newMap;
       this._list = newList;
       return this;
@@ -112,6 +110,7 @@ function makeOrderedMap(map, list, ownerID, hash) {
   omap._list = list;
   omap.__ownerID = ownerID;
   omap.__hash = hash;
+  omap.__altered = false;
   return omap;
 }
 
@@ -139,7 +138,7 @@ function updateOrderedMap(omap, k, v) {
       newList = list.filter((entry, idx) => entry !== undefined && i !== idx);
       newMap = newList
         .toKeyedSeq()
-        .map(entry => entry[0])
+        .map((entry) => entry[0])
         .flip()
         .toMap();
       if (omap.__ownerID) {
@@ -164,6 +163,7 @@ function updateOrderedMap(omap, k, v) {
     omap._map = newMap;
     omap._list = newList;
     omap.__hash = undefined;
+    omap.__altered = true;
     return omap;
   }
   return makeOrderedMap(newMap, newList);

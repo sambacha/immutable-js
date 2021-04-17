@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const { Record } = require('../');
+const { Record } = require('immutable');
 
 describe('Record', () => {
   it('defines a record factory', () => {
@@ -27,7 +27,7 @@ describe('Record', () => {
       t.a = 10;
     }).toThrow();
 
-    const t2 = t.withMutations(mt => {
+    const t2 = t.withMutations((mt) => {
       mt.a = 10;
       mt.b = 20;
       mt.c = 30;
